@@ -1,0 +1,167 @@
+#!/usr/bin/bash
+
+set -o errexit
+
+locale-gen en_US.utf8
+
+export LC_ALL=en_US.utf8
+export LANGUAGE=en_US.utf8
+export LANG=en_US.utf8
+
+# RC 5.0.x
+MASTODON_VERSION="4.0.2"
+NODE_JS_VERSION="16.18.1"
+RUBY_VERSION="3.0.4"
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+echo "* Remove apt-get workaround"
+rm /usr/local/bin/apt-get || true
+
+echo "* Get latest"
+export DEBIAN_FRONTEND=noninteractive
+apt-get -y update
+yes no | apt-get -y upgrade
+apt-get -y dist-upgrade
+
+echo "* Setup nginx"
+ln -nfs /etc/nginx/sites-available/mastodon /etc/nginx/sites-enabled/mastodon
+mkdir -p /etc/nginx/ssl
+chmod 0500 /etc/nginx/ssl
+/usr/local/bin/ssl-selfsigned.sh -d /etc/nginx/ssl -f nginx
+mv /usr/local/var/tmp/nginx_service /usr/lib/systemd/system/nginx.service
+systemctl daemon-reload
+
+echo "* Setup apt-requirements"
+wget -O /usr/share/keyrings/postgresql.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+echo "deb [signed-by=/usr/share/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+echo "* Install requirements"
+apt-get update
+apt-get install -y \
+  postgresql postgresql-contrib \
+  yarn
+
+echo "* Setup node"
+apt-get -y install npm
+npm install -g inherits n
+/usr/local/bin/n $NODE_JS_VERSION
+
+echo "* Setup yarn"
+corepack enable || true
+yarn set version stable
+
+echo "* Fix redis for lx-branch"
+sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/redis-server.service
+systemctl daemon-reload
+systemctl start redis
+systemctl enable redis
+
+echo "* Fix postgresql for lx-branch"
+sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/postgresql@.service
+systemctl daemon-reload
+pg_createcluster 15 main --start
+su - postgres -c "psql -c \"CREATE USER mastodon CREATEDB;\"" || true
+
+echo "* Setup postgresql backup"
+mkdir -p /var/lib/postgresql/backups
+chown postgres:postgres /var/lib/postgresql/backups
+echo "0 1 * * * /usr/local/bin/psql_backup" >> /var/spool/cron/crontabs/postgres
+echo "0 2 1 * * /usr/bin/vacuumdb --all" >> /var/spool/cron/crontabs/postgres
+chown postgres:crontab /var/spool/cron/crontabs/postgres
+
+echo "* Create mastoton user and group"
+addgroup mastodon
+adduser --disabled-password --system --quiet --home /home/mastodon --shell /usr/bin/bash mastodon
+adduser mastodon mastodon
+mkdir -p /home/mastodon
+
+echo "* Setup ruby and download mastadon"
+# https://docs.joinmastodon.org/admin/install/
+cat >> /home/mastodon/install << "EOF"
+#!/usr/bin/bash
+
+echo "*** Setup rbenv"
+cd /home/mastodon
+git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+cd ~/.rbenv && src/configure && make -C src
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(rbenv init -)"' >> ~/.bashrc
+exec bash
+git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+
+echo "*** Install ruby"
+RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install ${RUBY_VERSION}
+rbenv global ${RUBY_VERSION}
+gem install bundler --no-document
+
+echo "*** Download mastodon"
+git clone https://github.com/tootsuite/mastodon.git live && cd live
+git checkout v${MASTODON_VERSION}
+
+echo "${RUBY_VERSION}" > .ruby-version
+
+bundle config deployment 'true'
+bundle config without 'development test'
+bundle install -j$(getconf _NPROCESSORS_ONLN)
+yarn install --pure-lockfile
+EOF
+chown -R mastodon:mastodon /home/mastodon
+chmod +x /home/mastodon/install
+su - mastodon -c "/home/mastodon/install"
+rm /home/mastodon/install
+
+# echo "* Fix nginx ssl"
+# cp /home/mastodon/live/dist/nginx.conf /etc/nginx/sites-enabled/mastodon
+# sed -i \
+#   -e "s|# ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;|ssl_certificate     /etc/nginx/ssl/nginx.pem;|" \
+#   -e "s|# ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;|ssl_certificate_key /etc/nginx/ssl/nginx.key;|" \
+#   /etc/nginx/sites-enabled/mastodon
+
+echo "* Install systemd files"
+mv /usr/local/var/tmp/mastodon-web_service /etc/systemd/system/mastodon-web.service
+mv /usr/local/var/tmp/mastodon-sidekiq_service /etc/systemd/system/mastodon-sidekiq.service
+mv /usr/local/var/tmp/mastodon-streaming_service /etc/systemd/system/mastodon-streaming.service
+systemctl daemon-reload
+
+echo "* Disable and remove rpcbind"
+apt-get -y remove rpcbind || true
+systemctl stop rpcbind.service
+systemctl disable rpcbind.service
+
+echo "* Disable nfs-client"
+systemctl unmask nfs-client.target
+systemctl disable nfs-client.target
+
+echo "* Disable ssh"
+systemctl stop ssh
+systemctl disable ssh
+
+echo "* Create bash-history"
+cat >> /root/.bash_history << EOF
+systemctl edit --full mastodon-web
+systemctl daemon-reload
+systemctl reset-failed mastodon-web
+systemctl stop mastodon-web
+systemctl stop mastodon-sidekiq
+systemctl stop mastodon-streaming
+systemctl start mastodon-web
+systemctl start mastodon-sidekiq
+systemctl start mastodon-streaming
+systemctl reload nginx
+journalctl --since $(date '+%Y-%m-%d')
+EOF
+
+echo "* Ensure bootstrap will run next time"
+rm -rf /var/lib/bootstrap
+
+echo "* Cleaning up."
+apt-get -y purge git make gcc g++ build-essential
+apt-get -y autoremove
+rm -rf /usr/local/var/tmp/*
+rm /var/log/syslog || true
+touch /var/log/syslog || true
+rm /root/customize
+history -c

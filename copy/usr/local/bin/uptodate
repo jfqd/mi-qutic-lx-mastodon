@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+yes no | apt-get -y upgrade
+apt-get -y autoremove

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+NOW=`/bin/date "+%Y%m%d_%H%M%S"`
+
+# backup all databases
+/usr/bin/pg_dumpall | /bin/gzip > "/var/lib/postgresql/backups/${NOW}_kivitendo.pqsql.gz"
+# only preserve the last 10 backups
+/bin/ls -1dt /var/lib/postgresql/backups/* | /usr/bin/tail -n +10 | /usr/bin/xargs rm -rf
+
+exit 0
