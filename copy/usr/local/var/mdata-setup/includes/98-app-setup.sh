@@ -18,9 +18,9 @@ cat > /home/mastodon/setup << "EOF"
 
 cd /home/mastodon/live
 export RAILS_ENV=production
-export PATH=/home/mastodon/.rbenv/shims:/home/mastodon/.rbenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
-
-eval "$(rbenv init -)"
+# export PATH=/home/mastodon/.rbenv/shims:/home/mastodon/.rbenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+# 
+# eval "$(rbenv init -)"
 
 echo "*** generate SECRET_KEY_BASE"
 SECRET_KEY_BASE=$(bundle exec rails runner "puts SecureRandom.hex(64)")
