@@ -8,6 +8,8 @@ mastodon lx-brand image
 
 ## Build Image
 
+To build the image a minimum of 4096 MB RAM is required!
+
 ```
 cd /opt/mibe/repos
 /opt/tools/bin/git clone https://github.com/jfqd/mi-qutic-lx-mastodon.git

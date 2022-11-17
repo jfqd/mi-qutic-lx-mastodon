@@ -20,7 +20,7 @@ rm /usr/local/bin/apt-get || true
 
 echo "* Get latest"
 export DEBIAN_FRONTEND=noninteractive
-apt-get -y update
+apt-get update
 yes no | apt-get -y upgrade
 apt-get -y dist-upgrade
 
@@ -71,18 +71,24 @@ mkdir -p /home/mastodon
 
 echo "* Setup ruby and download mastadon"
 # https://docs.joinmastodon.org/admin/install/
-cat >> /home/mastodon/install << EOF
+cat > /home/mastodon/install << EOF
 #!/usr/bin/bash
 
 echo "*** Setup rbenv"
 cd /home/mastodon
 git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-cd ~/.rbenv && src/configure && make -C src
-echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+(cd ~/.rbenv && src/configure && make -C src)
+echo 'export PATH="$HOME/.rbenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"' >> ~/.bashrc
 echo 'eval "\$(rbenv init -)"' >> ~/.bashrc
+chmod 0600 ~/.bashrc
+
+cat >> ~/.bash_profile << "EOF2"
+source ${HOME}/.bashrc
+EOF2
+chmod 0600 ~/.bash_profile
 
 export PATH=/home/mastodon/.rbenv/shims:/home/mastodon/.rbenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
-eval "$(rbenv init -)"
+eval "\$(rbenv init -)"
 
 git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 
