@@ -88,6 +88,9 @@ git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 
 echo "*** Install ruby"
 RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install ${RUBY_VERSION}
+if [ $? -ne 0 ]; then
+  RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install ${RUBY_VERSION}
+fi
 rbenv global ${RUBY_VERSION}
 gem install bundler --no-document
 
