@@ -132,14 +132,26 @@ echo "* Setup mastodon"
 su - mastodon -c "/home/mastodon/setup"
 rm /home/mastodon/setup
 
+echo "* Start mastodon services"
+systemctl enable --now mastodon-web || true
+systemctl enable --now mastodon-sidekiq || true
+systemctl enable --now mastodon-streaming || true
+systemctl start mastodon-streaming || true
+
 echo "* Fix hostname in nginx mastodon config"
 sed -i \
     -e "s|example.com;|${MASTADON_DOMAIN}|g" \
     /etc/nginx/sites-enabled/mastodon
 
-systemctl enable --now mastodon-web || true
-systemctl enable --now mastodon-sidekiq || true
-systemctl enable --now mastodon-streaming || true
-systemctl start mastodon-streaming || true
+echo "* Create http-basic password for backup area"
+if [[ ! -f /etc/nginx/.htpasswd ]]; then
+  if /native/usr/sbin/mdata-get mastodon_backup_pwd 1>/dev/null 2>&1; then
+    /native/usr/sbin/mdata-get mastodon_backup_pwd | shasum | awk '{print $1}' | htpasswd -c -i /etc/nginx/.htpasswd "mastodon-backup"
+    chmod 0640 /etc/nginx/.htpasswd
+    chown root:www-data /etc/nginx/.htpasswd
+  fi
+fi
+
+systemctl restart nginx || true
 
 exit 0

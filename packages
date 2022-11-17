@@ -28,4 +28,4 @@ redis-tools
 libidn11-dev
 libicu-dev
 libjemalloc-dev
-# ruby-full
+apache2-utils

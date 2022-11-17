@@ -57,6 +57,13 @@ server {
   location / {
     try_files $uri @proxy;
   }
+  
+  location /mastodon-backup {
+    auth_basic           "Admin area";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+    alias                "/var/lib/postgresql/backups";
+    autoindex            on;
+  }
 
   location ~ ^/(emoji|packs|system/accounts/avatars|system/media_attachments/files) {
     add_header Cache-Control "public, max-age=31536000, immutable";

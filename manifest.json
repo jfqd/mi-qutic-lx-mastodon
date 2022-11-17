@@ -28,6 +28,7 @@
     "mastadon_from":         {"type": "text", "description": "email address of the mastadon instance"},
     "mastadon_admin_name":   {"type": "text", "description": "mastadon admin name"},
     "mastadon_admin_email":  {"type": "text", "description": "mastadon admin email"},
-    "mastadon_admin_pwd":    {"type": "text", "description": "mastadon admin password"}    
+    "mastadon_admin_pwd":    {"type": "text", "description": "mastadon admin password"},
+    "mastodon_backup_pwd":   {"type": "text", "description": "mastadon backup password"}
   }
 }
