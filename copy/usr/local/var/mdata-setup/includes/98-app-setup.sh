@@ -1,21 +1,32 @@
 #!/usr/bin/bash
 
-MAIL_UID=$(/native/usr/sbin/mdata-get mail_auth_user)
-MAIL_PWD=$(/native/usr/sbin/mdata-get mail_auth_pass)
-MAIL_HOST=$(/native/usr/sbin/mdata-get mail_smarthost)
+# see: /home/mastodon/live/lib/tasks/mastodon.rake
+# RAILS_ENV=production bundle exec rake mastodon:setup
+cat > /home/mastodon/setup << "EOF"
+#!/usr/bin/bash
 
-MASTADON_DOMAIN=$(/native/usr/sbin/mdata-get mastadon_domain)
-MASTADON_FROM=$(/native/usr/sbin/mdata-get mastadon_from)
+cd /home/mastodon/live
+export RAILS_ENV=production
+export PATH=/home/mastodon/.rbenv/shims:/home/mastodon/.rbenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 
-# SECRET_KEY_BASE=$(su - mastodon -c "cd /home/mastodon/live; RAILS_ENV=production /home/mastodon/.rbenv/shims/bundle exec /home/mastodon/.rbenv/shims/rake secret")
-# OTP_SECRET=
-# VAPID_PRIVATE_KEY=
-# VAPID_PUBLIC_KEY=
+eval "$(rbenv init -)"
 
-cat > /home/mastodon/live/.env.production << EOF
+echo "*** generate SECRET_KEY_BASE"
+SECRET_KEY_BASE=$(bundle exec rails runner "puts SecureRandom.hex(64)")
+
+echo "*** generate OTP_SECRET"
+OTP_SECRET=$(bundle exec rails runner "puts SecureRandom.hex(64)")
+
+echo "*** generate VAPID"
+VAPID=$(bundle exec rails mastodon:webpush:generate_vapid_key)
+VAPID_PRIVATE_KEY=$(env $VAPID |grep VAPID_PRIVATE_KEY |sed "s|VAPID_PRIVATE_KEY=||")
+VAPID_PUBLIC_KEY=$(env $VAPID |grep VAPID_PUBLIC_KEY |sed "s|VAPID_PUBLIC_KEY=||")
+
+echo "*** generate env"
+cat > /home/mastodon/live/.env.production << EOF2
 # https://docs.joinmastodon.org/admin/config/
 
-LOCAL_DOMAIN=${MASTADON_DOMAIN}
+LOCAL_DOMAIN=
 SINGLE_USER_MODE=true
 SECRET_KEY_BASE=${SECRET_KEY_BASE}
 OTP_SECRET=${OTP_SECRET}
@@ -29,25 +40,57 @@ DB_PASS=
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
-SMTP_SERVER=${MAIL_HOST}
+SMTP_SERVER=
 SMTP_PORT=587
-SMTP_LOGIN=${MAIL_UID}
-SMTP_PASSWORD=${MAIL_PWD}
+SMTP_LOGIN=
+SMTP_PASSWORD=
 SMTP_AUTH_METHOD=plain
 SMTP_OPENSSL_VERIFY_MODE=none
-SMTP_FROM_ADDRESS=${MASTADON_FROM}
+SMTP_FROM_ADDRESS=
 RAILS_LOG_LEVEL=error
 DEFAULT_LOCALE=de
 # TRUSTED_PROXY_IP=
 # USER_ACTIVE_DAYS=2
 # MAX_SESSION_ACTIVATIONS=10
-EOF
-chown mastodon:mastodon /home/mastodon/live/.env.production
+EOF2
 chmod 0600 /home/mastodon/live/.env.production
 
-# RAILS_ENV=production bundle exec rake mastodon:setup
+echo "*** create admin user"
+bundle exec rails runner "username = 'MASTODON_ADMIN_NAME'; email = 'MASTODON_ADMIN_EMAIL'; password = 'MASTODON_ADMIN_PWD'; owner_role = UserRole.find_by(name: 'Owner'); user = User.new(email: email, password: password, confirmed_at: Time.now.utc, account_attributes: { username: username }, bypass_invite_request_check: true, role: owner_role); user.save(validate: false)
 
-su - mastodon -c "cd /home/mastodon/live; RAILS_ENV=production bundle exec rails db:setup"
-su - mastodon -c "cd /home/mastodon/live; RAILS_ENV=production bundle exec rails assets:precompile"
+echo "*** setup db"
+bundle exec rails db:setup
 
-systemctl enable --now mastodon-web mastodon-sidekiq mastodon-streaming
+echo "*** precompile assets"
+bundle exec rails assets:precompile
+
+EOF
+chmod +x /home/mastodon/setup
+
+MASTADON_DOMAIN=$(/native/usr/sbin/mdata-get mastadon_domain)
+MASTADON_FROM=$(/native/usr/sbin/mdata-get mastadon_from)
+
+MASTODON_ADMIN_NAME=$(/native/usr/sbin/mdata-get mastadon_admin_name)
+MASTODON_ADMIN_EMAIL=$(/native/usr/sbin/mdata-get mastadon_admin_email)
+MASTODON_ADMIN_PWD=$(/native/usr/sbin/mdata-get mastadon_admin_pwd)
+
+MAIL_UID=$(/native/usr/sbin/mdata-get mail_auth_user)
+MAIL_PWD=$(/native/usr/sbin/mdata-get mail_auth_pass)
+MAIL_HOST=$(/native/usr/sbin/mdata-get mail_smarthost)
+
+sed -i \
+    -e "s|LOCAL_DOMAIN=|LOCAL_DOMAIN=${MASTADON_DOMAIN}|" \
+    -e "s|SMTP_FROM_ADDRESS=|SMTP_FROM_ADDRESS=${MASTADON_FROM}|" \
+    -e "s|MASTODON_ADMIN_NAME|${MASTODON_ADMIN_NAME}|" \
+    -e "s|MASTODON_ADMIN_EMAIL|${MASTODON_ADMIN_EMAIL}|" \
+    -e "s|MASTODON_ADMIN_PWD|${MASTODON_ADMIN_PWD}|" \
+    -e "s|SMTP_SERVER=|SMTP_SERVER=${MAIL_HOST}|" \
+    -e "s|SMTP_LOGIN=|SMTP_LOGIN=${MAIL_UID}|" \
+    -e "s|SMTP_PASSWORD=|SMTP_PASSWORD=${MAIL_PWD}|" \
+    /home/mastodon/live/.env.production
+
+echo "* Setup mastodon"
+# su - mastodon -c "/home/mastodon/setup"
+# rm /home/mastodon/setup
+
+# systemctl enable --now mastodon-web mastodon-sidekiq mastodon-streaming

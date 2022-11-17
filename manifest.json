@@ -24,7 +24,10 @@
     "zabbix_pski":           {"type": "text", "description": "zabbix PSKIdentity"},
     "zabbix_psk":            {"type": "text", "description": "zabbix PSK"},
     "vfstab":                {"type": "text", "description": "nfs mountpoint for vfstab-file"},
-    "mastadon_domain":       {"type": "text", "description": "domain of the mastadon instance"},
-    "mastadon_from":         {"type": "text", "description": "email address of the mastadon instance"}
+    "mastadon_domain":       {"type": "text", "description": "domain of the mastadon instance (cannot be changed)"},
+    "mastadon_from":         {"type": "text", "description": "email address of the mastadon instance"},
+    "mastadon_admin_name":   {"type": "text", "description": "mastadon admin name"},
+    "mastadon_admin_email":  {"type": "text", "description": "mastadon admin email"},
+    "mastadon_admin_pwd":    {"type": "text", "description": "mastadon admin password"}    
   }
 }
