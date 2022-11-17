@@ -62,7 +62,7 @@ systemctl enable redis || true
 echo "* Fix postgresql for lx-branch"
 sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/postgresql@.service
 systemctl daemon-reload
-pg_createcluster 15 main --start
+pg_createcluster 15 main --start || true
 su - postgres -c "psql -c \"CREATE USER mastodon CREATEDB;\"" || true
 
 echo "* Setup postgresql backup"
