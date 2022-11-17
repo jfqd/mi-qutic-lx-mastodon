@@ -80,7 +80,10 @@ git clone https://github.com/rbenv/rbenv.git ~/.rbenv
 cd ~/.rbenv && src/configure && make -C src
 echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
 echo 'eval "\$(rbenv init -)"' >> ~/.bashrc
-source ~/.bashrc
+
+export PATH=/home/mastodon/.rbenv/shims:/home/mastodon/.rbenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+eval "$(rbenv init -)"
+
 git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 
 echo "*** Install ruby"
@@ -96,7 +99,7 @@ echo "${RUBY_VERSION}" > .ruby-version
 
 bundle config deployment 'true'
 bundle config without 'development test'
-bundle install -j$\(getconf _NPROCESSORS_ONLN)
+bundle install -j\$(getconf _NPROCESSORS_ONLN)
 yarn install --pure-lockfile
 EOF
 chown -R mastodon:mastodon /home/mastodon
