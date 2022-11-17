@@ -86,11 +86,9 @@ eval "$(rbenv init -)"
 
 git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 
-echo "*** Install ruby"
-RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install ${RUBY_VERSION}
-if [ $? -ne 0 ]; then
-  RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install ${RUBY_VERSION}
-fi
+echo "*** Install ruby ${RUBY_VERSION}"
+export RUBY_CONFIGURE_OPTS=--with-jemalloc
+rbenv install ${RUBY_VERSION}
 rbenv global ${RUBY_VERSION}
 gem install bundler --no-document
 
@@ -102,7 +100,7 @@ echo "${RUBY_VERSION}" > .ruby-version
 
 bundle config deployment 'true'
 bundle config without 'development test'
-bundle install -j\$(getconf _NPROCESSORS_ONLN)
+bundle install
 yarn install --pure-lockfile
 EOF
 chown -R mastodon:mastodon /home/mastodon
