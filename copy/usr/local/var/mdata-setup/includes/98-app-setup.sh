@@ -1,5 +1,16 @@
 #!/usr/bin/bash
 
+systemctl daemon-reload
+pg_createcluster 15 main --start || true
+su - postgres -c "psql -c \"CREATE USER mastodon CREATEDB;\"" || true
+
+echo "* Setup postgresql backup"
+mkdir -p /var/lib/postgresql/backups
+chown postgres:postgres /var/lib/postgresql/backups
+echo "0 1 * * * /usr/local/bin/psql_backup" >> /var/spool/cron/crontabs/postgres
+echo "0 2 1 * * /usr/bin/vacuumdb --all" >> /var/spool/cron/crontabs/postgres
+chown postgres:crontab /var/spool/cron/crontabs/postgres
+
 # see: /home/mastodon/live/lib/tasks/mastodon.rake
 # RAILS_ENV=production bundle exec rake mastodon:setup
 cat > /home/mastodon/setup << "EOF"
