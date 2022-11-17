@@ -11,6 +11,7 @@ chown postgres:postgres /var/lib/postgresql/backups
 echo "0 1 * * * /usr/local/bin/psql_backup" >> /var/spool/cron/crontabs/postgres
 echo "0 2 1 * * /usr/bin/vacuumdb --all" >> /var/spool/cron/crontabs/postgres
 chown postgres:crontab /var/spool/cron/crontabs/postgres
+chmod 0600 /var/spool/cron/crontabs/postgres
 
 echo "* Setup mastodon"
 # see: /home/mastodon/live/lib/tasks/mastodon.rake
@@ -136,7 +137,6 @@ echo "* Start mastodon services"
 systemctl enable --now mastodon-web || true
 systemctl enable --now mastodon-sidekiq || true
 systemctl enable --now mastodon-streaming || true
-systemctl start mastodon-streaming || true
 
 echo "* Fix hostname in nginx mastodon config"
 sed -i \
