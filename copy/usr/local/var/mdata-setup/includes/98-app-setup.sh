@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+echo "* Start postgresql"
 systemctl daemon-reload
 pg_createcluster 15 main --start || true
 su - postgres -c "psql -c \"CREATE USER mastodon CREATEDB;\"" || true
@@ -11,6 +12,7 @@ echo "0 1 * * * /usr/local/bin/psql_backup" >> /var/spool/cron/crontabs/postgres
 echo "0 2 1 * * /usr/bin/vacuumdb --all" >> /var/spool/cron/crontabs/postgres
 chown postgres:crontab /var/spool/cron/crontabs/postgres
 
+echo "* Setup mastodon"
 # see: /home/mastodon/live/lib/tasks/mastodon.rake
 # RAILS_ENV=production bundle exec rake mastodon:setup
 cat > /home/mastodon/setup << "EOF"
@@ -18,18 +20,32 @@ cat > /home/mastodon/setup << "EOF"
 
 cd /home/mastodon/live
 export RAILS_ENV=production
-# export PATH=/home/mastodon/.rbenv/shims:/home/mastodon/.rbenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
-# 
-# eval "$(rbenv init -)"
+export PATH=/home/mastodon/.rbenv/shims:/home/mastodon/.rbenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+eval "$(rbenv init -)"
+
+cat > /home/mastodon/live/lib/tasks/mibe.rake << EOF2
+namespace :mibe do
+  desc 'Configure the instance for production use'
+  task :secure_random do
+    puts SecureRandom.hex(64)
+  end
+  desc 'Configure the instance for production use'
+  task :generate_vapid_key do
+    vapid_key = Webpush.generate_key
+    puts "VAPID_PRIVATE_KEY=#{vapid_key.private_key}"
+    puts "VAPID_PUBLIC_KEY=#{vapid_key.public_key}"
+  end
+end
+EOF2
 
 echo "*** generate SECRET_KEY_BASE"
-SECRET_KEY_BASE=$(bundle exec rails runner "puts SecureRandom.hex(64)")
+SECRET_KEY_BASE=$(bundle exec rake mibe:secure_random)
 
 echo "*** generate OTP_SECRET"
-OTP_SECRET=$(bundle exec rails runner "puts SecureRandom.hex(64)")
+OTP_SECRET=$(bundle exec rake mibe:secure_random)
 
 echo "*** generate VAPID"
-VAPID=$(bundle exec rails mastodon:webpush:generate_vapid_key)
+VAPID=$(bundle exec rake mibe:generate_vapid_key)
 VAPID_PRIVATE_KEY=$(env $VAPID |grep VAPID_PRIVATE_KEY |sed "s|VAPID_PRIVATE_KEY=||")
 VAPID_PUBLIC_KEY=$(env $VAPID |grep VAPID_PUBLIC_KEY |sed "s|VAPID_PUBLIC_KEY=||")
 
@@ -66,24 +82,13 @@ DEFAULT_LOCALE=de
 EOF2
 chmod 0600 /home/mastodon/live/.env.production
 
-echo "*** create admin user"
-bundle exec rails runner "username = 'MASTODON_ADMIN_NAME'; email = 'MASTODON_ADMIN_EMAIL'; password = 'MASTODON_ADMIN_PWD'; owner_role = UserRole.find_by(name: 'Owner'); user = User.new(email: email, password: password, confirmed_at: Time.now.utc, account_attributes: { username: username }, bypass_invite_request_check: true, role: owner_role); user.save(validate: false)
-
-echo "*** setup db"
-bundle exec rails db:setup
-
-echo "*** precompile assets"
-bundle exec rails assets:precompile
-
 EOF
+chown mastodon:mastodon /home/mastodon/setup
 chmod +x /home/mastodon/setup
+su - mastodon -c "/home/mastodon/setup"
 
 MASTADON_DOMAIN=$(/native/usr/sbin/mdata-get mastadon_domain)
 MASTADON_FROM=$(/native/usr/sbin/mdata-get mastadon_from)
-
-MASTODON_ADMIN_NAME=$(/native/usr/sbin/mdata-get mastadon_admin_name)
-MASTODON_ADMIN_EMAIL=$(/native/usr/sbin/mdata-get mastadon_admin_email)
-MASTODON_ADMIN_PWD=$(/native/usr/sbin/mdata-get mastadon_admin_pwd)
 
 MAIL_UID=$(/native/usr/sbin/mdata-get mail_auth_user)
 MAIL_PWD=$(/native/usr/sbin/mdata-get mail_auth_pass)
@@ -92,16 +97,49 @@ MAIL_HOST=$(/native/usr/sbin/mdata-get mail_smarthost)
 sed -i \
     -e "s|LOCAL_DOMAIN=|LOCAL_DOMAIN=${MASTADON_DOMAIN}|" \
     -e "s|SMTP_FROM_ADDRESS=|SMTP_FROM_ADDRESS=${MASTADON_FROM}|" \
-    -e "s|MASTODON_ADMIN_NAME|${MASTODON_ADMIN_NAME}|" \
-    -e "s|MASTODON_ADMIN_EMAIL|${MASTODON_ADMIN_EMAIL}|" \
-    -e "s|MASTODON_ADMIN_PWD|${MASTODON_ADMIN_PWD}|" \
     -e "s|SMTP_SERVER=|SMTP_SERVER=${MAIL_HOST}|" \
     -e "s|SMTP_LOGIN=|SMTP_LOGIN=${MAIL_UID}|" \
     -e "s|SMTP_PASSWORD=|SMTP_PASSWORD=${MAIL_PWD}|" \
     /home/mastodon/live/.env.production
 
-echo "* Setup mastodon"
-# su - mastodon -c "/home/mastodon/setup"
-# rm /home/mastodon/setup
+MASTODON_ADMIN_NAME=$(/native/usr/sbin/mdata-get mastadon_admin_name)
+MASTODON_ADMIN_EMAIL=$(/native/usr/sbin/mdata-get mastadon_admin_email)
+MASTODON_ADMIN_PWD=$(/native/usr/sbin/mdata-get mastadon_admin_pwd)
 
-# systemctl enable --now mastodon-web mastodon-sidekiq mastodon-streaming
+cat > /home/mastodon/setup << "EOF"
+#!/usr/bin/bash
+
+cd /home/mastodon/live
+export RAILS_ENV=production
+
+echo "*** setup db"
+bundle exec rails db:setup
+
+echo "*** create admin user"
+bundle exec rails runner "username = 'MASTODON_ADMIN_NAME'; email = 'MASTODON_ADMIN_EMAIL'; password = 'MASTODON_ADMIN_PWD'; owner_role = UserRole.find_by(name: 'Owner'); user = User.new(email: email, password: password, confirmed_at: Time.now.utc, account_attributes: { username: username }, bypass_invite_request_check: true, role: owner_role); user.save(validate: false)"
+
+echo "*** precompile assets"
+bundle exec rails assets:precompile || true
+EOF
+
+sed -i \
+    -e "s|MASTODON_ADMIN_NAME|${MASTODON_ADMIN_NAME}|" \
+    -e "s|MASTODON_ADMIN_EMAIL|${MASTODON_ADMIN_EMAIL}|" \
+    -e "s|MASTODON_ADMIN_PWD|${MASTODON_ADMIN_PWD}|" \
+    /home/mastodon/setup
+
+echo "* Setup mastodon"
+su - mastodon -c "/home/mastodon/setup"
+rm /home/mastodon/setup
+
+echo "* Fix hostname in nginx mastodon config"
+sed -i \
+    -e "s|example.com;|${MASTADON_DOMAIN}|g" \
+    /etc/nginx/sites-enabled/mastodon
+
+systemctl enable --now mastodon-web || true
+systemctl enable --now mastodon-sidekiq || true
+systemctl enable --now mastodon-streaming || true
+systemctl start mastodon-streaming || true
+
+exit 0
