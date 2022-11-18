@@ -13,7 +13,7 @@ echo "0 2 1 * * /usr/bin/vacuumdb --all" >> /var/spool/cron/crontabs/postgres
 chown postgres:crontab /var/spool/cron/crontabs/postgres
 chmod 0600 /var/spool/cron/crontabs/postgres
 
-echo "* Setup mastodon"
+echo "* Setup mastodon env"
 # see: /home/mastodon/live/lib/tasks/mastodon.rake
 # RAILS_ENV=production bundle exec rake mastodon:setup
 cat > /home/mastodon/setup << "EOF"
