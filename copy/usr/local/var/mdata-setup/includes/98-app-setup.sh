@@ -140,7 +140,7 @@ systemctl enable --now mastodon-streaming || true
 
 echo "* Fix hostname in nginx mastodon config"
 sed -i \
-    -e "s|example.com;|${MASTADON_DOMAIN}|g" \
+    -e "s|example.com;|${MASTADON_DOMAIN};|g" \
     /etc/nginx/sites-enabled/mastodon
 
 echo "* Create http-basic password for backup area"
