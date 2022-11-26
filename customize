@@ -104,11 +104,14 @@ git clone https://github.com/tootsuite/mastodon.git live && cd live
 git checkout v${MASTODON_VERSION}
 
 echo "${RUBY_VERSION}" > .ruby-version
+echo "${MASTODON_VERSION}" > version
 
 bundle config deployment 'true'
 bundle config without 'development test'
 bundle install
 yarn install --pure-lockfile
+
+echo "Disallow: /" >> public/robots.txt
 EOF
 chown -R mastodon:mastodon /home/mastodon
 chmod +x /home/mastodon/install
