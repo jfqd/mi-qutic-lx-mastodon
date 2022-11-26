@@ -64,7 +64,7 @@ elif [[ "$1" = "stop" ]]; then
   stop
 elif [[ "$1" = "restart" ]]; then
   restart
-elif [[ "$1" = "housekeeping" ]]; then
+elif [[ "$1" = "cleanup" ]]; then
   housekeeping
 else
   echo "usage: mastodon [version|status|start|stop|restart|cleanup]"
