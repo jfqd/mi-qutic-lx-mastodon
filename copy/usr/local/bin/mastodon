@@ -1,0 +1,71 @@
+#!/usr/bin/bash
+
+version() {
+  cat /home/mastodon/live/version
+}
+
+status() {
+  systemctl is-active "$1"
+}
+
+start() {
+  systemctl start mastodon-sidekiq
+  systemctl start mastodon-web
+  systemctl start mastodon-streaming
+  systemctl start redis
+}
+
+stop() {
+  systemctl stop mastodon-sidekiq
+  systemctl stop mastodon-web
+  systemctl stop mastodon-streaming
+  systemctl stop redis
+}
+
+stop_service() {
+  if [[ "$(status $1)" == "inactive" ]]; then
+    start $1
+  else
+    echo "$1 was already active"
+  fi
+}
+
+restart() {
+  stop
+  sleep 5
+  start
+}
+
+cleanup() {
+  if [[ "$(/usr/bin/whoami)" != "mastodon" ]]; then
+    echo "ERROR: script must be run as the mastodon user"
+    exit 1
+  fi
+
+  cd /home/mastodon/live
+  export RAILS_ENV=production 
+
+  bundle exec bin/tootctl media remove --days 14 --verbose
+  bundle exec bin/tootctl preview_cards remove --days 90 --verbose
+  bundle exec bin/tootctl statuses remove --days 90
+  bundle exec bin/tootctl media remove-orphans
+}
+
+if [[ "$1" = "version" ]]; then
+  version
+elif [[ "$1" = "status" ]]; then
+  _r=$(status mastodon-web); printf "web:\t ${_r}\n"
+  _r=$(status mastodon-sidekiq); printf "sidekiq: ${_r}\n"
+  _r=$(status mastodon-streaming); printf "stream:\t ${_r}\n"
+  _r=$(status redis); printf "redis:\t ${_r}\n"
+elif [[ "$1" = "start" ]]; then
+  start
+elif [[ "$1" = "stop" ]]; then
+  stop
+elif [[ "$1" = "restart" ]]; then
+  restart
+elif [[ "$1" = "housekeeping" ]]; then
+  housekeeping
+else
+  echo "usage: mastodon [version|status|start|stop|restart|cleanup]"
+fi

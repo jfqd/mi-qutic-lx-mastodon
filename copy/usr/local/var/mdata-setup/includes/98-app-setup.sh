@@ -138,6 +138,11 @@ systemctl enable --now mastodon-web || true
 systemctl enable --now mastodon-sidekiq || true
 systemctl enable --now mastodon-streaming || true
 
+echo "* Setup mastodon cleanup"
+echo "0 3 * * * /usr/local/bin/mastodon cleanup" > /var/spool/cron/crontabs/mastodon
+chown mastodon:crontab /var/spool/cron/crontabs/mastodon
+chmod 0600 /var/spool/cron/crontabs/mastodon
+
 echo "* Fix hostname in nginx mastodon config"
 sed -i \
     -e "s|example.com;|${MASTADON_DOMAIN};|g" \
