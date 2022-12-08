@@ -139,7 +139,10 @@ systemctl enable --now mastodon-sidekiq || true
 systemctl enable --now mastodon-streaming || true
 
 echo "* Setup mastodon cleanup"
-echo "0 3 * * * /usr/local/bin/mastodon cleanup" > /var/spool/cron/crontabs/mastodon
+cat > /var/spool/cron/crontabs/mastodon << EOF
+MAILTO=root
+0 3 * * * /usr/local/bin/mastodon cleanup
+EOF
 chown mastodon:crontab /var/spool/cron/crontabs/mastodon
 chmod 0600 /var/spool/cron/crontabs/mastodon
 
