@@ -144,6 +144,13 @@ echo "* Disable ssh"
 systemctl stop ssh
 systemctl disable ssh
 
+echo "* Redis optimization"
+cat >> /etc/sysctl.conf <<EOF
+vm.overcommit_memory = 1
+EOF
+mv /etc/redis/redis.conf /etc/redis/redis.conf.bak
+mv /etc/redis/redis.conf.new /etc/redis/redis.conf
+
 echo "* Create bash-history"
 cat >> /root/.bash_history << EOF
 systemctl edit --full mastodon-web
