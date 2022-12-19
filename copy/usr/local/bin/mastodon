@@ -47,8 +47,10 @@ cleanup() {
   cd /home/mastodon/live
   export RAILS_ENV=production 
 
-  bundle exec bin/tootctl media remove --days 14 --verbose
-  bundle exec bin/tootctl preview_cards remove --days 90 --verbose
+  bundle exec bin/tootctl media remove --days 14
+  bundle exec bin/tootctl media remove --days 14 --prune-profiles 2>/dev/null
+  bundle exec bin/tootctl media remove --days 14 --remove-headers 2>/dev/null
+  bundle exec bin/tootctl preview_cards remove --days 14
   bundle exec bin/tootctl statuses remove --days 90
   bundle exec bin/tootctl media remove-orphans
 }
