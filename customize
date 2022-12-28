@@ -150,6 +150,8 @@ vm.overcommit_memory = 1
 EOF
 mv /etc/redis/redis.conf /etc/redis/redis.conf.bak
 mv /etc/redis/redis.conf.new /etc/redis/redis.conf
+# zabbix redis-log access
+usermod -a -G adm zabbix
 
 echo "* Create bash-history"
 cat >> /root/.bash_history << EOF
