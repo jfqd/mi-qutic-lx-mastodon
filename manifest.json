@@ -23,6 +23,7 @@
     "zabbix_server":         {"type": "text", "description": "zabbix server hostname (alternative ip address)"},
     "zabbix_pski":           {"type": "text", "description": "zabbix PSKIdentity"},
     "zabbix_psk":            {"type": "text", "description": "zabbix PSK"},
+    "logstash_redis":        {"type": "text", "description": "ip addresses of the logstash redis nodes, seperated by comma and including redis-protocoll"},
     "vfstab":                {"type": "text", "description": "nfs mountpoint for vfstab-file"},
     "mastadon_domain":       {"type": "text", "description": "domain of the mastadon instance (cannot be changed)"},
     "mastadon_from":         {"type": "text", "description": "email address of the mastadon instance"},
