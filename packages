@@ -32,3 +32,4 @@ libicu-dev
 libjemalloc-dev
 apache2-utils
 htop
+gpg
