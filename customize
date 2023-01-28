@@ -44,6 +44,12 @@ apt-get install -y \
   postgresql postgresql-contrib \
   yarn
 
+echo "* Setup postgresql"
+sed -i 's/local   all             all                                     password/local   all             all                                     peer/' \
+  /etc/postgresql/15/main/pg_hba.conf
+sed -i "s/#listen_addresses = 'localhost'/listen_addresses = 'localhost'/" \
+  /etc/postgresql/15/main/postgresql.conf
+
 echo "* Setup node"
 apt-get -y install npm
 npm install -g inherits n
