@@ -1,11 +1,11 @@
 {
   "name":         "qutic-lx-mastodon",
-  "version":      "4.0.2",
-  "description":  "qutic mastodon 4.0.2 image",
+  "version":      "4.1.0",
+  "description":  "qutic mastodon 4.1.0 image",
   "organization": "qutic development",
   "brand":        "Instance",
   "homepage":     "https://github.com/jfqd/mi-qutic-lx-mastodon",
-  "base":         "cb020ee4-a9bb-11ec-b16c-1b18c2e32e2e",
+  "base":         "08a21bc0-5206-11ed-a485-9f8bf0f16829",
   "customer_metadata": {
     "admin_authorized_keys": {"type": "text", "description": "SSH public authorized key(s) for the admin user"},
     "root_authorized_keys":  {"type": "text", "description": "SSH public authorized key(s) for the root user"},

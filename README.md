@@ -8,7 +8,7 @@ mastodon lx-brand image
 
 ## Build Image
 
-To build and deploy the image a minimum of 4096 MB RAM is required!
+To build and deploy the image a minimum of 5120 MB RAM is required!
 
 ```
 cd /opt/mibe/repos
