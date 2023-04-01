@@ -115,7 +115,7 @@ echo "${MASTODON_VERSION}" > version
 bundle config deployment 'true'
 bundle config without 'development test'
 bundle install
-yarn install --pure-lockfile
+yarn install
 
 echo "Disallow: /" >> public/robots.txt
 EOF
