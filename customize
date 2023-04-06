@@ -9,9 +9,9 @@ export LANGUAGE=en_US.utf8
 export LANG=en_US.utf8
 
 # RC 5.0.x
-MASTODON_VERSION="4.1.0"
+MASTODON_VERSION="4.1.2"
 NODE_JS_VERSION="16.18.1"
-RUBY_VERSION="3.0.5"
+RUBY_VERSION="3.0.6"
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -170,6 +170,7 @@ systemctl stop mastodon-streaming
 systemctl start mastodon-web
 systemctl start mastodon-sidekiq
 systemctl start mastodon-streaming
+mastodon restart
 systemctl reload nginx
 journalctl --since $(date '+%Y-%m-%d')
 EOF
