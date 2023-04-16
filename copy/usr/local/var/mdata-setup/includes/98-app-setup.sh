@@ -142,6 +142,7 @@ echo "* Setup mastodon cleanup"
 cat > /var/spool/cron/crontabs/mastodon << EOF
 MAILTO=root
 0 3 * * * /usr/local/bin/mastodon cleanup
+0 1 * * * /usr/local/bin/mastodon restart
 EOF
 chown mastodon:crontab /var/spool/cron/crontabs/mastodon
 chmod 0600 /var/spool/cron/crontabs/mastodon
