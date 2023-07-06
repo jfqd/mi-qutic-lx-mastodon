@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.1.3 - 2023-07-06
+
+* update mastodon to v4.1.3
+* update nginx config for mastodon
+
 ## 4.1.2 - 2023-04-06
 
 * update mastodon to v4.1.2
