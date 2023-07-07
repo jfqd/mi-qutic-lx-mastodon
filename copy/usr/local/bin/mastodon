@@ -55,6 +55,10 @@ cleanup() {
   bundle exec bin/tootctl media remove-orphans
 }
 
+backup() {
+  sudo -u postgres /usr/local/bin/psql_backup
+}
+
 if [[ "$1" = "version" ]]; then
   version
 elif [[ "$1" = "status" ]]; then
@@ -70,6 +74,8 @@ elif [[ "$1" = "restart" ]]; then
   restart
 elif [[ "$1" = "cleanup" ]]; then
   cleanup
+elif [[ "$1" = "backup" ]]; then
+  backup
 else
-  echo "usage: mastodon [version|status|start|stop|restart|cleanup]"
+  echo "usage: mastodon [version|status|start|stop|restart|cleanup|backup]"
 fi
