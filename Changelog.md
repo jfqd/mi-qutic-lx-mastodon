@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.2.1 - 2023-07-07
+
+* update mastodon to v4.2.1
+* use latest ruby v3.2.2
+
 ## 4.1.4 - 2023-07-07
 
 * update mastodon to v4.1.4
