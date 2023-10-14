@@ -120,7 +120,7 @@ echo "*** create admin user"
 bundle exec rails runner "username = 'MASTODON_ADMIN_NAME'; email = 'MASTODON_ADMIN_EMAIL'; password = 'MASTODON_ADMIN_PWD'; owner_role = UserRole.find_by(name: 'Owner'); user = User.new(email: email, password: password, confirmed_at: Time.now.utc, account_attributes: { username: username }, bypass_invite_request_check: true, role: owner_role); user.save(validate: false)"
 
 echo "*** precompile assets"
-bundle exec rails assets:precompile || true
+RAILS_ENV=production bundle exec rails assets:precompile || true
 EOF
 
 sed -i \

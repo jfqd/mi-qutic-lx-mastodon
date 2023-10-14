@@ -9,9 +9,9 @@ export LANGUAGE=en_US.utf8
 export LANG=en_US.utf8
 
 # RC 5.0.x
-MASTODON_VERSION="4.1.4"
+MASTODON_VERSION="4.2.1"
 NODE_JS_VERSION="16.18.1"
-RUBY_VERSION="3.0.6"
+RUBY_VERSION="3.2.2"
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -54,6 +54,7 @@ echo "* Setup node"
 apt-get -y install npm
 npm install -g inherits n
 /usr/local/bin/n $NODE_JS_VERSION
+ln -nfs /usr/bin/node /usr/local/bin/node
 
 echo "* Setup yarn"
 corepack enable || true
@@ -99,7 +100,7 @@ eval "\$(rbenv init -)"
 
 git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 
-echo "*** Install ruby ${RUBY_VERSION}"
+echo "*** Install ruby ${RUBY_VERSION}: need at least 8GB memory for compiling!"
 export RUBY_CONFIGURE_OPTS=--with-jemalloc
 rbenv install ${RUBY_VERSION}
 rbenv global ${RUBY_VERSION}
@@ -115,7 +116,7 @@ echo "${MASTODON_VERSION}" > version
 bundle config deployment 'true'
 bundle config without 'development test'
 bundle install
-yarn install
+yarn install --frozen-lockfile
 
 echo "Disallow: /" >> public/robots.txt
 EOF
@@ -171,8 +172,10 @@ systemctl start mastodon-web
 systemctl start mastodon-sidekiq
 systemctl start mastodon-streaming
 mastodon restart
+mastodon status
 systemctl reload nginx
 journalctl --since $(date '+%Y-%m-%d')
+journalctl -r
 EOF
 
 echo "* Ensure bootstrap will run next time"
