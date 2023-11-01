@@ -55,11 +55,14 @@ echo "* Setup node"
 apt-get -y install npm
 npm install -g inherits n
 /usr/local/bin/n $NODE_JS_VERSION
-ln -nfs /usr/bin/node /usr/local/bin/node
+echo "node-path: $(which node)"
+# ln -nfs /usr/bin/node /usr/local/bin/node
 
-echo "* Setup yarn"
+echo "* Setup corepack"
 corepack enable || true
-yarn set version stable
+
+# echo "* Setup yarn"
+# yarn set version stable
 
 echo "* Fix redis for lx-branch"
 sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/redis-server.service
