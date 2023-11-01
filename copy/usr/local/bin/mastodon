@@ -39,13 +39,17 @@ restart() {
 }
 
 cleanup() {
+  if [[ "$(/usr/bin/whoami)" == "root" ]]; then
+    su - mastodon -c '/usr/local/bin/mastodon cleanup'
+    exit 0
+  fi
   if [[ "$(/usr/bin/whoami)" != "mastodon" ]]; then
     echo "ERROR: script must be run as the mastodon user"
     exit 1
   fi
 
   cd /home/mastodon/live
-  export RAILS_ENV=production 
+  export RAILS_ENV=production
 
   bundle exec bin/tootctl media remove --days 14
   bundle exec bin/tootctl media remove --days 14 --prune-profiles 2>/dev/null
