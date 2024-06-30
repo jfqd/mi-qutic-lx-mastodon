@@ -141,7 +141,7 @@ systemctl enable --now mastodon-streaming || true
 echo "* Setup mastodon cleanup"
 cat > /var/spool/cron/crontabs/mastodon << EOF
 MAILTO=root
-0 3 * * * /usr/local/bin/mastodon cleanup
+0 3 6 * * /usr/local/bin/mastodon cleanup
 0 1 * * * /usr/local/bin/mastodon restart
 EOF
 chown mastodon:crontab /var/spool/cron/crontabs/mastodon
