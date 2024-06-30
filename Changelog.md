@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.1 - 2024-06-30
+
+* update mastodon to v4.2.9
+
 ## 4.2.1 - 2023-07-07
 
 * update mastodon to v4.2.1
