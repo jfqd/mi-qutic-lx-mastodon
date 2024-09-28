@@ -12,7 +12,7 @@ export LANG=en_US.utf8
 MASTODON_VERSION="4.2.10"
 NODE_JS_VERSION="16.18.1"
 RUBY_VERSION="3.2.3"
-PGSQL_VERSION="16"
+PGSQL_VERSION="17"
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 

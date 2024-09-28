@@ -2,7 +2,7 @@
 
 echo "* Start postgresql"
 systemctl daemon-reload
-pg_createcluster 16 main --start || true
+pg_createcluster 17 main --start || true
 su - postgres -c "psql -c \"CREATE USER mastodon CREATEDB;\"" || true
 
 echo "* Setup postgresql backup"
