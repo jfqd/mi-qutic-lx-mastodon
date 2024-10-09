@@ -50,6 +50,10 @@ VAPID=$(bundle exec rake mibe:generate_vapid_key)
 VAPID_PRIVATE_KEY=$(env $VAPID |grep VAPID_PRIVATE_KEY |sed "s|VAPID_PRIVATE_KEY=||")
 VAPID_PUBLIC_KEY=$(env $VAPID |grep VAPID_PUBLIC_KEY |sed "s|VAPID_PUBLIC_KEY=||")
 
+ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=$(bundle exec bin/rails db:encryption:init |grep deterministic_key | sed "s/  deterministic_key: //")
+ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=$(bundle exec bin/rails db:encryption:init |grep key_derivation_salt | sed "s/  key_derivation_salt: //")
+ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=$(bundle exec bin/rails db:encryption:init |grep primary_key | sed "s/  primary_key: //")
+
 echo "*** generate env"
 cat > /home/mastodon/live/.env.production << EOF2
 # https://docs.joinmastodon.org/admin/config/
@@ -77,12 +81,17 @@ SMTP_OPENSSL_VERIFY_MODE=none
 SMTP_FROM_ADDRESS=
 RAILS_LOG_LEVEL=error
 DEFAULT_LOCALE=de
+ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=${ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY}
+ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=${ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT}
+ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=${ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY}
+MASTODON_USE_LIBVIPS=false
 # TRUSTED_PROXY_IP=
 # USER_ACTIVE_DAYS=2
 # MAX_SESSION_ACTIVATIONS=10
 EOF2
 chmod 0600 /home/mastodon/live/.env.production
 
+corepack prepare || true
 EOF
 chown mastodon:mastodon /home/mastodon/setup
 chmod +x /home/mastodon/setup

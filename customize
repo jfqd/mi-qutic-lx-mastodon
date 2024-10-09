@@ -9,9 +9,9 @@ export LANGUAGE=en_US.utf8
 export LANG=en_US.utf8
 
 # RC 5.0.x
-MASTODON_VERSION="4.2.10"
-NODE_JS_VERSION="16.18.1"
-RUBY_VERSION="3.2.3"
+MASTODON_VERSION="4.3.0"
+NODE_JS_VERSION="20.18.0"
+RUBY_VERSION="3.3.5"
 PGSQL_VERSION="17"
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -54,7 +54,12 @@ sed -i "s/#listen_addresses = 'localhost'/listen_addresses = 'localhost'/" \
 echo "* Setup node"
 apt-get -y install npm
 npm install -g inherits n
-/usr/local/bin/n $NODE_JS_VERSION
+if [[ -x /usr/bin/n ]]; then
+  /usr/bin/n $NODE_JS_VERSION
+else
+  /usr/local/bin/n $NODE_JS_VERSION
+fi
+
 echo "node-path: $(which node)"
 # ln -nfs /usr/bin/node /usr/local/bin/node
 
@@ -113,6 +118,7 @@ gem install bundler --no-document
 echo "*** Download mastodon"
 git clone https://github.com/tootsuite/mastodon.git live && cd live
 git checkout v${MASTODON_VERSION}
+sed -i -e "s/MAX_CHARS = 500/MAX_CHARS = 10240/" /app/validators/status_length_validator.rb
 
 echo "${RUBY_VERSION}" > .ruby-version
 echo "${MASTODON_VERSION}" > version
