@@ -21,8 +21,8 @@ libncurses5-dev
 libffi-dev
 libgdbm-dev
 nginx
-redis-server
-redis-tools
+# redis-server
+# redis-tools
 #certbot
 #python3-certbot-nginx
 python3

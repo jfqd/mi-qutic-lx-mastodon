@@ -9,7 +9,7 @@ export LANGUAGE=en_US.utf8
 export LANG=en_US.utf8
 
 # RC 5.0.x
-MASTODON_VERSION="4.3.0"
+MASTODON_VERSION="4.3.12"
 NODE_JS_VERSION="20.18.0"
 RUBY_VERSION="3.3.5"
 PGSQL_VERSION="17"
@@ -36,14 +36,17 @@ systemctl daemon-reload
 echo "* Setup apt-requirements"
 wget -O /usr/share/keyrings/postgresql.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
 echo "deb [signed-by=/usr/share/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
-curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
-echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+curl -sL ttps://packages.redis.io/gpg | apt-key add -
+echo "deb https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
 
-echo "* Install requirements"
+echo "* Install mastodon requirements"
 apt-get update
 apt-get install -y \
   postgresql postgresql-contrib \
-  yarn
+  yarn redis
+apt-mark hold "postgresql-${PG_VERSION}"
 
 echo "* Setup postgresql"
 sed -i 's/local   all             all                                     password/local   all             all                                     peer/' \
@@ -70,7 +73,12 @@ corepack enable || true
 # yarn set version stable
 
 echo "* Fix redis for lx-branch"
-sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/redis-server.service
+if [[ -f /lib/systemd/system/redis-server.service ]]; then
+  sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/redis-server.service
+fi
+if [[ -f /lib/systemd/system/redis.service ]]; then
+  sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/redis.service
+fi
 systemctl daemon-reload
 systemctl start redis  || true
 systemctl enable redis || true
