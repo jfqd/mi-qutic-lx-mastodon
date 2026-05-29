@@ -1,3 +1,6 @@
+ca-certificates
+lsb-release
+software-properties-common
 imagemagick
 ffmpeg
 libpq-dev
@@ -32,5 +35,5 @@ libicu-dev
 libjemalloc-dev
 apache2-utils
 htop
-gpg
+gnupg2
 libvips-tools
