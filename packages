@@ -36,4 +36,5 @@ libjemalloc-dev
 apache2-utils
 htop
 gnupg2
+postgresql-common
 libvips-tools

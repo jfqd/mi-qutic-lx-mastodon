@@ -12,7 +12,7 @@ export LANG=en_US.utf8
 MASTODON_VERSION="4.4.17"
 NODE_JS_VERSION="20.18.0"
 RUBY_VERSION="3.4.9"
-PGSQL_VERSION="17"
+PGSQL_VERSION="18"
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -34,8 +34,7 @@ mv /usr/local/var/tmp/nginx_service /usr/lib/systemd/system/nginx.service
 systemctl daemon-reload
 
 echo "* Setup apt-requirements"
-wget -O /usr/share/keyrings/postgresql.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
-echo "deb [signed-by=/usr/share/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
 curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
 echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
 curl -sL ttps://packages.redis.io/gpg | apt-key add -
