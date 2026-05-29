@@ -36,16 +36,14 @@ systemctl daemon-reload
 echo "* Setup apt-requirements"
 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
 curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
-echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
-curl -sL ttps://packages.redis.io/gpg | apt-key add -
 echo "deb https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
 
 echo "* Install mastodon requirements"
 apt-get update
 apt-get install -y \
-  postgresql postgresql-contrib \
+  postgresql-${PGSQL_VERSION} postgresql-contrib \
   yarn redis
-apt-mark hold "postgresql-${PG_VERSION}"
+#apt-mark hold "postgresql-${PG_VERSION}"
 
 echo "* Setup postgresql"
 sed -i 's/local   all             all                                     password/local   all             all                                     peer/' \
@@ -68,8 +66,8 @@ echo "node-path: $(which node)"
 echo "* Setup corepack"
 corepack enable || true
 
-# echo "* Setup yarn"
-# yarn set version stable
+echo "* Install yarn"
+npm install -g yarn
 
 echo "* Fix redis for lx-branch"
 if [[ -f /lib/systemd/system/redis-server.service ]]; then
