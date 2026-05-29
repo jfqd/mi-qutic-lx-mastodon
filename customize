@@ -16,6 +16,9 @@ PGSQL_VERSION="18"
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+# echo "net.ipv6.conf.all.disable_ipv6=1" >> /etc/sysctl.conf
+# sudo sysctl -p
+
 echo "* Remove apt-get workaround"
 rm /usr/local/bin/apt-get || true
 
@@ -51,8 +54,12 @@ sed -i 's/local   all             all                                     passwo
 sed -i "s/#listen_addresses = 'localhost'/listen_addresses = 'localhost'/" \
   /etc/postgresql/${PGSQL_VERSION}/main/postgresql.conf
 
-echo "* Setup node"
+echo "* Setup npm"
 apt-get -y install npm
+
+echo "* Install the right node version"
+export NODE_OPTIONS="--dns-result-order=ipv4first"
+
 npm install -g inherits n
 if [[ -x /usr/bin/n ]]; then
   /usr/bin/n $NODE_JS_VERSION
@@ -65,10 +72,6 @@ echo "node-path: $(which node)"
 
 echo "* Setup corepack"
 corepack enable || true
-
-echo "* Install yarn"
-alias npm="node --dns-result-order=ipv4first $(which npm)"
-npm install -g yarn
 
 echo "* Fix redis for lx-branch"
 if [[ -f /lib/systemd/system/redis-server.service ]]; then
@@ -124,7 +127,8 @@ gem install bundler --no-document
 echo "*** Download mastodon"
 git clone https://github.com/tootsuite/mastodon.git live && cd live
 git checkout v${MASTODON_VERSION}
-sed -i -e "s/MAX_CHARS = 500/MAX_CHARS = 10240/" /app/validators/status_length_validator.rb
+sed -i -e "s/MAX_CHARS = 500/MAX_CHARS = 10240/" ./app/validators/status_length_validator.rb
+sed -i -e "s/NOTE_LENGTH_LIMIT = 500/NOTE_LENGTH_LIMIT = 10240/" ./app/models/account.rb
 
 echo "${RUBY_VERSION}" > .ruby-version
 echo "${MASTODON_VERSION}" > version
@@ -155,17 +159,17 @@ mv /usr/local/var/tmp/mastodon-streaming_service /etc/systemd/system/mastodon-st
 systemctl daemon-reload
 
 echo "* Disable and remove rpcbind"
+systemctl stop rpcbind.service  || true
+systemctl disable rpcbind.service || true
 apt-get -y remove rpcbind || true
-systemctl stop rpcbind.service
-systemctl disable rpcbind.service
 
 echo "* Disable nfs-client"
-systemctl unmask nfs-client.target
-systemctl disable nfs-client.target
+systemctl unmask nfs-client.target || true
+systemctl disable nfs-client.target || true
 
 echo "* Disable ssh"
-systemctl stop ssh
-systemctl disable ssh
+systemctl stop ssh || true
+systemctl disable ssh || true
 
 echo "* Redis optimization"
 cat >> /etc/sysctl.conf <<EOF
