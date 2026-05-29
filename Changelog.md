@@ -1,8 +1,13 @@
 # Changelog
 
+## 4.4.17 - 2026-04-29
+
+* update mastodon to v4.4.17
+
 ## 4.3.12 - 2025-09-22
 
 * update mastodon to v4.3.12
+* use redis own repo
 
 ## 4.3.0 - 2024-10-09
 
