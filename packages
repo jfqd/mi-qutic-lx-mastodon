@@ -35,6 +35,6 @@ libicu-dev
 libjemalloc-dev
 apache2-utils
 htop
-gnupg2
+gpg
 postgresql-common
 libvips-tools

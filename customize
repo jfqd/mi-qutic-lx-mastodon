@@ -35,8 +35,8 @@ systemctl daemon-reload
 
 echo "* Setup apt-requirements"
 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
-curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
-echo "deb https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor --yes -o /usr/share/keyrings/redis-archive-keyring.gpg
+chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
 
 echo "* Install mastodon requirements"
 apt-get update
