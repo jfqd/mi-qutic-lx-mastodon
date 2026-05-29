@@ -34,7 +34,7 @@ mv /usr/local/var/tmp/nginx_service /usr/lib/systemd/system/nginx.service
 systemctl daemon-reload
 
 echo "* Setup apt-requirements"
-/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+/usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
 curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor --yes -o /usr/share/keyrings/redis-archive-keyring.gpg
 chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
 
