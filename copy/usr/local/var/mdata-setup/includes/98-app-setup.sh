@@ -93,28 +93,29 @@ chmod 0600 /home/mastodon/live/.env.production
 
 corepack prepare || true
 EOF
-chown mastodon:mastodon /home/mastodon/setup
+chown -R mastodon:mastodon /home/mastodon
 chmod +x /home/mastodon/setup
 su - mastodon -c "/home/mastodon/setup"
+chmod a+x /home/mastodon/
 
-MASTADON_DOMAIN=$(/native/usr/sbin/mdata-get mastadon_domain)
-MASTADON_FROM=$(/native/usr/sbin/mdata-get mastadon_from)
+mastodon_domain=$(/native/usr/sbin/mdata-get mastodon_domain)
+mastodon_from=$(/native/usr/sbin/mdata-get mastodon_from)
 
 MAIL_UID=$(/native/usr/sbin/mdata-get mail_auth_user)
 MAIL_PWD=$(/native/usr/sbin/mdata-get mail_auth_pass)
 MAIL_HOST=$(/native/usr/sbin/mdata-get mail_smarthost)
 
 sed -i \
-    -e "s|LOCAL_DOMAIN=|LOCAL_DOMAIN=${MASTADON_DOMAIN}|" \
-    -e "s|SMTP_FROM_ADDRESS=|SMTP_FROM_ADDRESS=${MASTADON_FROM}|" \
+    -e "s|LOCAL_DOMAIN=|LOCAL_DOMAIN=${mastodon_domain}|" \
+    -e "s|SMTP_FROM_ADDRESS=|SMTP_FROM_ADDRESS=${mastodon_from}|" \
     -e "s|SMTP_SERVER=|SMTP_SERVER=${MAIL_HOST}|" \
     -e "s|SMTP_LOGIN=|SMTP_LOGIN=${MAIL_UID}|" \
     -e "s|SMTP_PASSWORD=|SMTP_PASSWORD=${MAIL_PWD}|" \
     /home/mastodon/live/.env.production
 
-MASTODON_ADMIN_NAME=$(/native/usr/sbin/mdata-get mastadon_admin_name)
-MASTODON_ADMIN_EMAIL=$(/native/usr/sbin/mdata-get mastadon_admin_email)
-MASTODON_ADMIN_PWD=$(/native/usr/sbin/mdata-get mastadon_admin_pwd)
+MASTODON_ADMIN_NAME=$(/native/usr/sbin/mdata-get mastodon_admin_name)
+MASTODON_ADMIN_EMAIL=$(/native/usr/sbin/mdata-get mastodon_admin_email)
+MASTODON_ADMIN_PWD=$(/native/usr/sbin/mdata-get mastodon_admin_pwd)
 
 cat > /home/mastodon/setup << "EOF"
 #!/usr/bin/bash
@@ -158,7 +159,7 @@ chmod 0600 /var/spool/cron/crontabs/mastodon
 
 echo "* Fix hostname in nginx mastodon config"
 sed -i \
-    -e "s|example.com;|${MASTADON_DOMAIN};|g" \
+    -e "s|example.com;|${mastodon_domain};|g" \
     /etc/nginx/sites-enabled/mastodon
 
 echo "* Create http-basic password for backup area"

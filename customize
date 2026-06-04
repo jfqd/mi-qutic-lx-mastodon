@@ -74,12 +74,9 @@ echo "* Setup corepack"
 corepack enable || true
 
 echo "* Fix redis for lx-branch"
-if [[ -f /lib/systemd/system/redis-server.service ]]; then
-  sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/redis-server.service
-fi
-if [[ -f /lib/systemd/system/redis.service ]]; then
-  sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/redis.service
-fi
+cp /usr/local/var/tmp/redis_service /usr/lib/systemd/system/redis-server.service
+mkdir -p /var/run/redis
+chown redis:redis /var/run/redis
 systemctl daemon-reload
 systemctl start redis  || true
 systemctl enable redis || true
@@ -94,7 +91,7 @@ adduser --disabled-password --system --quiet --home /home/mastodon --shell /usr/
 adduser mastodon mastodon
 mkdir -p /home/mastodon
 
-echo "* Setup ruby and download mastadon"
+echo "* Setup ruby and download mastodon"
 # https://docs.joinmastodon.org/admin/install/
 cat > /home/mastodon/install << EOF
 #!/usr/bin/bash
@@ -146,7 +143,6 @@ su - mastodon -c "/home/mastodon/install"
 rm /home/mastodon/install
 
 # echo "* Fix nginx ssl"
-# cp /home/mastodon/live/dist/nginx.conf /etc/nginx/sites-enabled/mastodon
 # sed -i \
 #   -e "s|# ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;|ssl_certificate     /etc/nginx/ssl/nginx.pem;|" \
 #   -e "s|# ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;|ssl_certificate_key /etc/nginx/ssl/nginx.key;|" \
@@ -179,6 +175,9 @@ mv /etc/redis/redis.conf /etc/redis/redis.conf.bak
 mv /etc/redis/redis.conf.new /etc/redis/redis.conf
 # zabbix redis-log access
 usermod -a -G adm zabbix
+mkdir -p /run/zabbix/
+chown zabbix:zabbix /run/zabbix/
+systemctl restart zabbix-agent
 
 echo "* Create bash-history"
 cat >> /root/.bash_history << EOF
