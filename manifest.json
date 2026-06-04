@@ -25,11 +25,11 @@
     "zabbix_psk":            {"type": "text", "description": "zabbix PSK"},
     "logstash_redis":        {"type": "text", "description": "ip addresses of the logstash redis nodes, seperated by comma and including redis-protocoll"},
     "vfstab":                {"type": "text", "description": "nfs mountpoint for vfstab-file"},
-    "mastodon_domain":       {"type": "text", "description": "domain of the mastadon instance (cannot be changed)"},
-    "mastodon_from":         {"type": "text", "description": "email address of the mastadon instance"},
-    "mastodon_admin_name":   {"type": "text", "description": "mastadon admin name"},
-    "mastodon_admin_email":  {"type": "text", "description": "mastadon admin email"},
-    "mastodon_admin_pwd":    {"type": "text", "description": "mastadon admin password"},
-    "mastodon_backup_pwd":   {"type": "text", "description": "mastadon backup password"}
+    "mastodon_domain":       {"type": "text", "description": "domain of the mastodon instance (cannot be changed)"},
+    "mastodon_from":         {"type": "text", "description": "email address of the mastodon instance"},
+    "mastodon_admin_name":   {"type": "text", "description": "mastodon admin name"},
+    "mastodon_admin_email":  {"type": "text", "description": "mastodon admin email"},
+    "mastodon_admin_pwd":    {"type": "text", "description": "mastodon admin password"},
+    "mastodon_backup_pwd":   {"type": "text", "description": "mastodon backup password"}
   }
 }
