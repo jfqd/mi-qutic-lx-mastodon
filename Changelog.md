@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.6.0 - 2026-06-22
+
+* update mastodon to v4.6.0
+
 ## 4.4.17 - 2026-04-29
 
 * update mastodon to v4.4.17

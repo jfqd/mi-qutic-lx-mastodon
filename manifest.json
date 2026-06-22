@@ -1,7 +1,7 @@
 {
   "name":         "qutic-lx-mastodon",
-  "version":      "4.4.17",
-  "description":  "qutic mastodon 4.4.17 image",
+  "version":      "4.6.0",
+  "description":  "qutic mastodon 4.6.0 image",
   "organization": "qutic development",
   "brand":        "Instance",
   "homepage":     "https://github.com/jfqd/mi-qutic-lx-mastodon",
