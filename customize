@@ -9,9 +9,9 @@ export LANGUAGE=en_US.utf8
 export LANG=en_US.utf8
 
 # RC 5.0.x
-MASTODON_VERSION="4.4.17"
-NODE_JS_VERSION="20.18.0"
-RUBY_VERSION="3.4.9"
+MASTODON_VERSION="4.6.0"
+NODE_JS_VERSION="24.17.0"
+RUBY_VERSION="4.0.5"
 PGSQL_VERSION="18"
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

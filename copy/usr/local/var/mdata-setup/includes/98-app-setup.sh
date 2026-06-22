@@ -2,7 +2,7 @@
 
 echo "* Start postgresql"
 systemctl daemon-reload
-pg_createcluster 17 main --start || true
+pg_createcluster 18 main --start || true
 su - postgres -c "psql -c \"CREATE USER mastodon CREATEDB;\"" || true
 
 echo "* Setup postgresql backup"
@@ -149,7 +149,7 @@ systemctl enable --now mastodon-sidekiq || true
 systemctl enable --now mastodon-streaming || true
 
 echo "* Setup mastodon cleanup"
-cat > /var/spool/cron/crontabs/mastodon << EOF
+cat > /var/spool/cron/crontabs/root << EOF
 MAILTO=root
 0 3 6 * * /usr/local/bin/mastodon cleanup
 0 1 * * * /usr/local/bin/mastodon restart
